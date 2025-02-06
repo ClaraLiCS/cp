@@ -238,3 +238,30 @@ double polygonArea(vector<pair<double, double>>& points) {
     }
     return abs(area) / 2.0;
 }
+
+//Factorial: Calcula el factorial de un número n (n!)
+long long factorial(int n) {
+    return (n == 0) ? 1 : n * factorial(n - 1);
+}
+
+//Combinaciones: Número de formas de elegir k elementos de un conjunto de n (nCk)
+long long combination(int n, int k) {
+    return factorial(n) / (factorial(k) * factorial(n - k));
+}
+
+//Permutaciones: Número de formas de ordenar k elementos de un conjunto de n (nPk)
+long long permutation(int n, int k) {
+    return factorial(n) / factorial(n - k);
+}
+
+//Coeficiente Binomial: Calcula combinaciones usando programación dinámica para eficiencia
+long long binomialCoefficient(int n, int k) {
+    vector<vector<long long>> C(n + 1, vector<long long>(k + 1, 0));
+    for (int i = 0; i <= n; i++) {
+        for (int j = 0; j <= min(i, k); j++) {
+            if (j == 0 || j == i) C[i][j] = 1;
+            else C[i][j] = C[i - 1][j - 1] + C[i - 1][j];
+        }
+    }
+    return C[n][k];
+}
