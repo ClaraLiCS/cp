@@ -265,3 +265,31 @@ long long binomialCoefficient(int n, int k) {
     }
     return C[n][k];
 }
+
+unordered_map<int, long long> memo1;
+// Función para calcular el número de Fibonacci con memoización
+long long fibonacci(int n) {
+    if (n <= 1) {
+        return n;  // Caso base
+    }
+    if (find(n, memo1)) {
+        return memo1[n];  // Devolvemos el resultado almacenado si ya fue calculado
+    }
+    long long result = fibonacci(n - 1) + fibonacci(n - 2);  // Calculamos el resultado recursivamente
+    memo1[n] = result;  // Almacenamos el resultado en el mapa
+    return result;
+}
+
+vector<std::vector<int>> memo2;
+// Función para calcular el número de rutas en una cuadrícula
+int numberOfPaths(int m, int n) {
+    if (m == 0 || n == 0) {
+        return 1;  // Caso base: solo hay una ruta cuando estamos en el borde de la cuadrícula
+    }
+    if (memo2[m][n] != 0) {
+        return memo2[m][n];  // Devolvemos el resultado almacenado si ya fue calculado
+    }
+    // Calculamos el número de rutas sumando las rutas desde arriba y desde la izquierda
+    memo2[m][n] = numberOfPaths(m - 1, n) + numberOfPaths(m, n - 1);
+    return memo2[m][n];
+}
