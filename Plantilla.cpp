@@ -8,12 +8,13 @@ typedef pair<int,int> pii;
 #define print(s) cout << s << endl //imprimir por pantalla una linea
 #define sc(s) getline(cin, s); //leer una linea entera
 #define REP(i, a, b) for(int i = a; i < b; ++i) //loop normal
-#define REPV(i, a, b) for(int i = b-1; i >= a, i--) //loop descendiente
+#define REPV(i, a, b) for(int i = b-1; i >= a; i--) //loop descendiente
 #define it(i, estructura) for(const auto& i : estructura) //para iterar sobre maps, sets, etc. (solo lectura)
-#define find(x, set) (set.find(x) != set.end()) //encontrar un elemento en un set
+#define found(x, set) (set.find(x) != set.end()) //encontrar un elemento en un set
 #define printElem(l) it(i,l){cout << i << " ";} cout << endl; //imprimir los elementos de una lista (array, vector o cualquier cosa que se pueda iterar)
 #define ArraySort(a) sort(a, a + (sizeof(a)/sizeof(a[0]))) //ordenar un array
 #define VectorSort(v) sort(v.begin(), v.end()) //ordenar un vector
+#define d(x) cout << #x << ": " << x << endl;
 
 int main() {
     
@@ -272,7 +273,7 @@ long long fibonacci(int n) {
     if (n <= 1) {
         return n;  // Caso base
     }
-    if (find(n, memo1)) {
+    if (found(n, memo1)) {
         return memo1[n];  // Devolvemos el resultado almacenado si ya fue calculado
     }
     long long result = fibonacci(n - 1) + fibonacci(n - 2);  // Calculamos el resultado recursivamente
@@ -292,4 +293,172 @@ int numberOfPaths(int m, int n) {
     // Calculamos el número de rutas sumando las rutas desde arriba y desde la izquierda
     memo2[m][n] = numberOfPaths(m - 1, n) + numberOfPaths(m, n - 1);
     return memo2[m][n];
+}
+
+// 1. Disjoint Set Union (Union-Find)
+class DSU {
+    vector<int> parent, rank;
+public:
+    DSU(int n) {
+        parent.resize(n);
+        rank.resize(n, 0);
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+    // Encuentra la raiz del conjunto al que pertenece x (con path compression)
+    int find(int x) {
+        if (parent[x] != x)
+            parent[x] = find(parent[x]);
+        return parent[x];
+    }
+    // Une los conjuntos de x e y (union by rank)
+    void unite(int x, int y) {
+        int xr = find(x);
+        int yr = find(y);
+        if (xr == yr) return;
+        if (rank[xr] < rank[yr])
+            parent[xr] = yr;
+        else if (rank[xr] > rank[yr])
+            parent[yr] = xr;
+        else {
+            parent[yr] = xr;
+            rank[xr]++;
+        }
+    }
+};
+
+// 2. Dynamic Programming: Fibonacci (Tabulation)
+int dpFibonacci(int n) {
+    vector<int> dp(n+1);
+    dp[0] = 0; dp[1] = 1;
+    for (int i = 2; i <= n; i++)
+        dp[i] = dp[i-1] + dp[i-2];
+    return dp[n];
+}
+
+// 3. Trees: Inorder Traversal
+struct TreeNode {
+    int val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+};
+void inorder(TreeNode* root) {
+    if (!root) return;
+    inorder(root->left);
+    cout << root->val << ' ';
+    inorder(root->right);
+}
+
+// 4. Rangos: Segment Tree (Range Sum Query)
+class SegmentTree {
+    vector<int> tree;
+    int n;
+    void build(vector<int>& arr, int v, int tl, int tr) {
+        if (tl == tr)
+            tree[v] = arr[tl];
+        else {
+            int tm = (tl + tr) / 2;
+            build(arr, v*2, tl, tm);
+            build(arr, v*2+1, tm+1, tr);
+            tree[v] = tree[v*2] + tree[v*2+1];
+        }
+    }
+    int sum(int v, int tl, int tr, int l, int r) {
+        if (l > r) return 0;
+        if (l == tl && r == tr) return tree[v];
+        int tm = (tl + tr) / 2;
+        return sum(v*2, tl, tm, l, min(r, tm))
+             + sum(v*2+1, tm+1, tr, max(l, tm+1), r);
+    }
+public:
+    SegmentTree(vector<int>& arr) {
+        n = arr.size();
+        tree.resize(4*n);
+        build(arr, 1, 0, n-1);
+    }
+    int rangeSum(int l, int r) {
+        return sum(1, 0, n-1, l, r);
+    }
+};
+
+// 5. Matrices: 2D Prefix Sum
+vector<vector<int>> computePrefixSum(const vector<vector<int>>& matrix) {
+    int m = matrix.size(), n = matrix[0].size();
+    vector<vector<int>> prefix(m+1, vector<int>(n+1, 0));
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            prefix[i][j] = matrix[i-1][j-1] + prefix[i-1][j]
+                           + prefix[i][j-1] - prefix[i-1][j-1];
+        }
+    }
+    return prefix;
+}
+
+// 6. DFS: Connected Components
+void dfs(int u, vector<vector<int>>& adj, vector<bool>& visited) {
+    visited[u] = true;
+    for (int v : adj[u])
+        if (!visited[v]) dfs(v, adj, visited);
+}
+
+// 7. Matemáticas: Criba de Eratóstenes
+vector<bool> sieve(int n) {
+    vector<bool> is_prime(n+1, true);
+    is_prime[0] = is_prime[1] = false;
+    for (int i = 2; i*i <= n; i++) {
+        if (is_prime[i]) {
+            for (int j = i*i; j <= n; j += i)
+                is_prime[j] = false;
+        }
+    }
+    return is_prime;
+}
+
+// 8. Geometría: Convex Hull (Graham Scan)
+struct Point {
+    int x, y;
+    bool operator<(const Point& p) const {
+        return tie(x, y) < tie(p.x, p.y);
+    }
+};
+int cross(const Point& O, const Point& A, const Point& B) {
+    return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+}
+vector<Point> convexHull(vector<Point>& P) {
+    int n = P.size(), k = 0;
+    vector<Point> H(2*n);
+    sort(P.begin(), P.end());
+    // lower hull
+    for (int i = 0; i < n; ++i) {
+        while (k >= 2 && cross(H[k-2], H[k-1], P[i]) <= 0) k--;
+        H[k++] = P[i];
+    }
+    // upper hull
+    for (int i = n-2, t = k+1; i >= 0; --i) {
+        while (k >= t && cross(H[k-2], H[k-1], P[i]) <= 0) k--;
+        H[k++] = P[i];
+    }
+    H.resize(k-1);
+    return H;
+}
+
+// 9. Priority Queue: Dijkstra
+void dijkstra(int src, vector<vector<pair<int, int>>>& adj, vector<int>& dist) {
+    int n = adj.size();
+    dist.assign(n, INT_MAX);
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+    dist[src] = 0;
+    pq.emplace(0, src);
+    while (!pq.empty()) {
+        int d, u;
+        tie(d, u) = pq.top(); pq.pop();
+        if (d > dist[u]) continue;
+        for (auto& edge : adj[u]) {
+            int v = edge.first, w = edge.second;
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.emplace(dist[v], v);
+            }
+        }
+    }
 }
